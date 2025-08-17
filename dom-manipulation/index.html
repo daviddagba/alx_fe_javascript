@@ -25,12 +25,11 @@
       font-size: 0.9em;
       color: #777;
     }
-    input {
+    input, button {
       margin: 5px;
       padding: 8px;
     }
     button {
-      padding: 8px 15px;
       background: #007bff;
       border: none;
       color: white;
@@ -48,8 +47,10 @@
   <div id="quoteDisplay">Click "Show New Quote" to begin!</div>
   <button id="newQuote">Show New Quote</button>
 
-  <!-- No static form here, will be injected by JS -->
-  
+  <h2>Data Management</h2>
+  <button id="exportBtn">Export Quotes (JSON)</button>
+  <input type="file" id="importFile" accept=".json">
+
   <script src="script.js"></script>
 </body>
 </html>
