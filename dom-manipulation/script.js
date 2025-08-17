@@ -222,3 +222,72 @@ if (!savedFilter || savedFilter === "all") {
       `"${quote.text}" <div class="quote-category">— ${quote.category}</div>`;
   }
 }
+
+// ===== Simulated Server Sync (Task 4) =====
+
+// Example server URL (using JSONPlaceholder posts as mock quotes)
+const SERVER_URL = "https://jsonplaceholder.typicode.com/posts";
+
+// Notify user
+function notifyUser(message, type = "info") {
+  const notificationDiv = document.getElementById("notification");
+  notificationDiv.textContent = message;
+  notificationDiv.style.color = type === "error" ? "red" : "green";
+  setTimeout(() => { notificationDiv.textContent = ""; }, 5000);
+}
+
+// Conflict resolution (manual prompt)
+function resolveConflict(localQuote, serverQuote) {
+  return confirm(
+    `Conflict detected:\nLocal: "${localQuote.text}"\nServer: "${serverQuote.text}"\nKeep server version?`
+  )
+    ? serverQuote
+    : localQuote;
+}
+
+// Sync quotes from server
+async function syncWithServer() {
+  try {
+    const response = await fetch(SERVER_URL);
+    const serverQuotes = await response.json();
+
+    // Convert server data to quote format (limit to first 5 for demo)
+    const formattedServerQuotes = serverQuotes.slice(0, 5).map(post => ({
+      text: post.title,
+      category: "Server"
+    }));
+
+    let localQuotes = loadQuotes();
+    let mergedQuotes = [];
+
+    // Handle conflicts manually
+    formattedServerQuotes.forEach((serverQuote, i) => {
+      if (localQuotes[i]) {
+        mergedQuotes.push(resolveConflict(localQuotes[i], serverQuote));
+      } else {
+        mergedQuotes.push(serverQuote);
+      }
+    });
+
+    // Add remaining local quotes (if any)
+    if (localQuotes.length > formattedServerQuotes.length) {
+      mergedQuotes = [...mergedQuotes, ...localQuotes.slice(formattedServerQuotes.length)];
+    }
+
+    // Save merged quotes locally
+    quotes = mergedQuotes;
+    saveQuotes();
+
+    notifyUser("Data synced with server (conflicts resolved).");
+
+  } catch (error) {
+    notifyUser("Error syncing with server!", "error");
+    console.error(error);
+  }
+}
+
+// Event listener for manual sync
+document.getElementById("syncNow").addEventListener("click", syncWithServer);
+
+// Auto-sync every 30 seconds
+setInterval(syncWithServer, 30000);

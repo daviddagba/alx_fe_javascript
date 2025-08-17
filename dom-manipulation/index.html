@@ -35,6 +35,15 @@
       border-radius: 4px;
     }
     button:hover { background: #0056b3; }
+
+    /* 🔹 Task 4 notification styles */
+    #notification {
+      margin-top: 10px;
+      padding: 10px;
+      background: #e9ecef;
+      border-radius: 4px;
+      display: none; /* hidden until triggered */
+    }
   </style>
 </head>
 <body>
@@ -50,6 +59,12 @@
   <h2>Data Management</h2>
   <button id="exportBtn">Export Quotes (JSON)</button>
   <input type="file" id="importFile" accept=".json">
+
+  <!-- 🔹 Task 4 additions -->
+  <div>
+    <button id="syncNow">Sync with Server</button>
+  </div>
+  <div id="notification"></div>
 
   <script src="script.js"></script>
 </body>
