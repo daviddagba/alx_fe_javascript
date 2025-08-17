@@ -245,23 +245,34 @@ function resolveConflict(localQuote, serverQuote) {
     : localQuote;
 }
 
-// Sync quotes from server
-async function syncWithServer() {
+// ✅ Fetch quotes from server
+async function fetchQuotesFromServer() {
+  const response = await fetch(SERVER_URL);
+  const serverQuotes = await response.json();
+  return serverQuotes.slice(0, 5).map(post => ({
+    text: post.title,
+    category: "Server"
+  }));
+}
+
+// ✅ Post new quote to server (mock)
+async function postQuoteToServer(quote) {
+  const response = await fetch(SERVER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(quote)
+  });
+  return response.json();
+}
+
+// ✅ Sync quotes (merge local + server with conflict resolution)
+async function syncQuotes() {
   try {
-    const response = await fetch(SERVER_URL);
-    const serverQuotes = await response.json();
-
-    // Convert server data to quote format (limit to first 5 for demo)
-    const formattedServerQuotes = serverQuotes.slice(0, 5).map(post => ({
-      text: post.title,
-      category: "Server"
-    }));
-
+    const serverQuotes = await fetchQuotesFromServer();
     let localQuotes = loadQuotes();
     let mergedQuotes = [];
 
-    // Handle conflicts manually
-    formattedServerQuotes.forEach((serverQuote, i) => {
+    serverQuotes.forEach((serverQuote, i) => {
       if (localQuotes[i]) {
         mergedQuotes.push(resolveConflict(localQuotes[i], serverQuote));
       } else {
@@ -269,15 +280,12 @@ async function syncWithServer() {
       }
     });
 
-    // Add remaining local quotes (if any)
-    if (localQuotes.length > formattedServerQuotes.length) {
-      mergedQuotes = [...mergedQuotes, ...localQuotes.slice(formattedServerQuotes.length)];
+    if (localQuotes.length > serverQuotes.length) {
+      mergedQuotes = [...mergedQuotes, ...localQuotes.slice(serverQuotes.length)];
     }
 
-    // Save merged quotes locally
     quotes = mergedQuotes;
     saveQuotes();
-
     notifyUser("Data synced with server (conflicts resolved).");
 
   } catch (error) {
@@ -286,8 +294,8 @@ async function syncWithServer() {
   }
 }
 
-// Event listener for manual sync
-document.getElementById("syncNow").addEventListener("click", syncWithServer);
+// ✅ Manual sync button
+document.getElementById("syncNow").addEventListener("click", syncQuotes);
 
-// Auto-sync every 30 seconds
-setInterval(syncWithServer, 30000);
+// ✅ Auto-sync every 30 seconds
+setInterval(syncQuotes, 30000);
